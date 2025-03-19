@@ -1,0 +1,100 @@
+.candidate-text-deck {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    margin-top: 20px;
+    justify-content: center;
+
+    .text-badge {
+        padding: 10px 15px;
+        background-color: #f0f0f0;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1.5rem;
+
+        &.incorrect {
+            background-color: #ffcccb;
+            color: #ff0000;
+        }
+
+        &.correct {
+            animation: correctFlash 0.5s ease;
+        }
+
+        &:hover {
+            background-color: #e0e0e0;
+        }
+    }
+
+    .completion-message {
+        color: green;
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+
+    &.light-mode {
+        .text-badge {
+            background-color: #f0f0f0;
+            color: #000000;
+
+            &:hover {
+                background-color: #e0e0e0;
+            }
+
+            &.incorrect {
+                background-color: #ffcccb;
+                color: #ff0000;
+            }
+
+            &.correct {
+                background-color: #a5d6a7;
+                color: #2e7d32;
+                border: 1px solid #81c784;
+            }
+        }
+
+        .completion-message {
+            color: green;
+        }
+    }
+
+    &.dark-mode {
+        .text-badge {
+            background-color: #333333;
+            color: #ffffff;
+
+            &:hover {
+                background-color: #444444;
+            }
+
+            &.incorrect {
+                background-color: #661515;
+                color: #ff6666;
+            }
+
+            &.correct {
+                background-color: #2e7d32;
+                color: #ffffff;
+                border: 1px solid #4caf50;
+            }
+        }
+
+        .completion-message {
+            color: #4caf50;
+        }
+    }
+}
+
+@keyframes correctFlash {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
