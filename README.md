@@ -2,7 +2,7 @@
 
 HuroofHub is an interactive web application designed to help users practice Arabic writing. This guide will walk you through the process of setting up and running the application on your local machine, even if you're not familiar with web development.
 
-![HuroofHub Screenshot](screenshot.png)
+![HuroofHub Screenshot](public/screenshot.png)
 
 ## Table of Contents
 - [Prerequisites](#prerequisites)
@@ -87,7 +87,7 @@ sudo apt install git
 Open Terminal (macOS/Linux) or Command Prompt/PowerShell (Windows) and run:
 
 ```
-git clone https://github.com/yourusername/huroofhub.git
+git clone https://github.com/asjadaugust/huroofhub.git
 cd huroofhub
 ```
 
