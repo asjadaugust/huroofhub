@@ -1,23 +1,11 @@
-import * as React from 'react';
-import Container from '@mui/material/Container';
-import Box from '@mui/material/Box';
-import WritingLines from '@huroofhub/components/WritingLines/WritingLines';
+import { getAllSurahs } from '../api/utils/surahUtils';
+import MainLayout from '../components/Layout/MainLayout';
 
-export default function Home() {
-  const arabicText = 'مرحبا بكم في موقعنا';
-  return (
-    <Container maxWidth="lg">
-      <Box
-        sx={{
-          my: 4,
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
-      >
-        <WritingLines text={arabicText} />
-      </Box>
-    </Container>
-  );
+// This is a Server Component (no 'use client' directive)
+export default async function Home() {
+  // Fetch data on the server
+  const surahs = await getAllSurahs();
+
+  // Pass the data to the client component
+  return <MainLayout initialSurahs={surahs} />;
 }

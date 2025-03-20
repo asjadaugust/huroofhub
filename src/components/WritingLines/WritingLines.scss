@@ -37,7 +37,7 @@
         /* Center the lines horizontally */
         justify-content: space-between;
         /* Distribute space evenly */
-        height: 120px;
+        height: 80px;
         /* Set a fixed height for even spacing */
         margin-bottom: 30px;
         /* Add space before the candidate deck */
@@ -57,30 +57,45 @@
                 width: 70%;
                 /* Second line less wide */
             }
-
-            &:nth-child(3) {
-                width: 100%;
-                /* Third line full width */
-            }
         }
     }
 
     .header-controls {
         display: flex;
-        justify-content: flex-end;
+        justify-content: space-between; // Changed to space-between to accommodate verse number
+        align-items: center;
         margin-bottom: 10px;
 
-        .speaker-button {
+        .verse-number {
+            font-weight: 500;
+            opacity: 0.8;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .speaker-button,
+        .skip-button {
             transition: all 0.3s ease;
 
             &:hover {
                 transform: scale(1.1);
             }
-
-            &.speaking {
-                animation: pulse 1.5s infinite;
-            }
         }
+
+        .speaker-button.speaking {
+            animation: pulse 1.5s infinite;
+        }
+    }
+
+    .verse-completion-message {
+        text-align: center;
+        margin-top: 15px;
+        padding: 10px;
+        border-radius: 8px;
+        animation: fadeIn 0.5s ease;
     }
 
     &.light-mode {
@@ -95,16 +110,22 @@
             background-color: rgba(0, 0, 0, 0.12);
         }
 
-        .speaker-button {
+        .speaker-button,
+        .skip-button {
             color: rgba(0, 0, 0, 0.54);
 
             &:hover {
                 color: rgba(0, 0, 0, 0.87);
             }
+        }
 
-            &.speaking {
-                color: #1976d2;
-            }
+        .speaker-button.speaking {
+            color: #1976d2;
+        }
+
+        .verse-completion-message {
+            color: #2e7d32;
+            background-color: rgba(46, 125, 50, 0.1);
         }
     }
 
@@ -120,16 +141,22 @@
             background-color: rgba(255, 255, 255, 0.2);
         }
 
-        .speaker-button {
+        .speaker-button,
+        .skip-button {
             color: rgba(255, 255, 255, 0.7);
 
             &:hover {
                 color: rgba(255, 255, 255, 1);
             }
+        }
 
-            &.speaking {
-                color: #90caf9;
-            }
+        .speaker-button.speaking {
+            color: #90caf9;
+        }
+
+        .verse-completion-message {
+            color: #81c784;
+            background-color: rgba(129, 199, 132, 0.1);
         }
     }
 }
