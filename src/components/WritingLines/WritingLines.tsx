@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
+import SkipNextIcon from '@mui/icons-material/SkipNext';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import Snackbar from '@mui/material/Snackbar';
@@ -12,22 +13,44 @@ import CandidateTextDeck from '../CandidateTextDeck/CandidateTextDeck';
 import { useTheme } from '@mui/material/styles';
 
 import './WritingLines.scss';
+import { Ayah } from '@huroofhub/interface/Ayah';
 
 interface WritingLinesProps {
-  text: string;
+  ayah: Ayah;
+  onComplete?: () => void; // New callback for when verse is completed
+  verseNumber?: number; // Optional verse number for display
 }
 
-const WritingLines: React.FC<WritingLinesProps> = ({ text }) => {
-  const [sentence, setSentence] = useState<string>(text);
+const WritingLines: React.FC<WritingLinesProps> = ({
+  ayah,
+  onComplete,
+  verseNumber,
+}) => {
+  const [sentence, setSentence] = useState<Ayah>(ayah);
   const [displayedText, setDisplayedText] = useState<string>('');
   const [position, setPosition] = useState<number>(0);
   const [options, setOptions] = useState<string[]>([]);
   const [currentCorrectLetter, setCurrentCorrectLetter] = useState<string>('');
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [completed, setCompleted] = useState<boolean>(false);
 
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === 'dark';
+
+  // Reset state when text changes (new verse)
+  useEffect(() => {
+    setSentence(ayah);
+    setDisplayedText('');
+    setPosition(0);
+    setCompleted(false);
+
+    if (ayah.text?.length > 0) {
+      const firstCorrectLetter = ayah.text[0] || '';
+      setCurrentCorrectLetter(firstCorrectLetter);
+      setOptions(generateOptions(firstCorrectLetter));
+    }
+  }, [ayah]);
 
   const generateOptions = (correctLetter: string) => {
     const arabicAlphabet = 'ابتثجحخدذرزسشصضطظعغفقكلمنهوي';
@@ -42,64 +65,67 @@ const WritingLines: React.FC<WritingLinesProps> = ({ text }) => {
     return newOptions.sort(() => Math.random() - 0.5);
   };
 
-  useEffect(() => {
-    if (sentence.length > 0) {
-      // Start with a random sentence
-      setDisplayedText('');
-      setPosition(0);
-      const firstCorrectLetter = sentence[0] || '';
-      setCurrentCorrectLetter(firstCorrectLetter);
-      setOptions(generateOptions(firstCorrectLetter));
-    }
-  }, [sentence]);
-
   const handleOptionClick = (selectedLetter: string) => {
     setDisplayedText((prev) => prev + selectedLetter);
     const nextPosition = position + 1;
     setPosition(nextPosition);
-    if (nextPosition < sentence.length) {
-      const nextCorrectLetter = sentence[nextPosition];
+
+    if (nextPosition < sentence.text?.length) {
+      // Still have letters to complete in the current verse
+      const nextCorrectLetter = sentence.text[nextPosition];
       setCurrentCorrectLetter(nextCorrectLetter);
       setOptions(generateOptions(nextCorrectLetter));
     } else {
+      // Verse completed
       setOptions([]);
+      setCompleted(true);
+
+      // Signal completion to parent component after a brief delay
+      // to allow the user to see the completed text
+      setTimeout(() => {
+        if (onComplete) {
+          onComplete();
+        }
+      }, 1500);
     }
   };
 
   const speakText = () => {
-    if (!('speechSynthesis' in window)) {
-      setErrorMessage(
-        'Your browser does not support text-to-speech functionality'
-      );
-      return;
-    }
-
     // If already speaking, stop it
     if (isSpeaking) {
-      window.speechSynthesis.cancel();
       setIsSpeaking(false);
       return;
     }
-
-    try {
-      const speech = new SpeechSynthesisUtterance();
-      speech.text = sentence;
-      speech.lang = 'ar-SA'; // Arabic language
-      speech.rate = 0.8; // Slightly slower speech rate
-
-      // Add event listeners for speech start and end
-      speech.onstart = () => setIsSpeaking(true);
-      speech.onend = () => setIsSpeaking(false);
-      speech.onerror = () => {
-        setIsSpeaking(false);
-        setErrorMessage('Error playing audio');
-      };
-
-      window.speechSynthesis.cancel(); // Cancel any ongoing speech
-      window.speechSynthesis.speak(speech);
-    } catch (error) {
+    
+    setIsSpeaking(true);
+    const audio = new Audio(sentence.audio);
+    
+    // Add event listeners to handle when audio finishes or errors
+    audio.addEventListener('ended', () => setIsSpeaking(false));
+    audio.addEventListener('error', () => {
+      setIsSpeaking(false);
+      setErrorMessage('Error playing audio');
+    });
+    
+    audio.play().catch(error => {
+      setIsSpeaking(false);
       setErrorMessage('Failed to play audio');
-    }
+      console.error('Audio playback failed:', error);
+    });
+  };
+
+  const handleSkipVerse = () => {
+    // Set displayed text to the full sentence to show what was skipped
+    setDisplayedText(sentence.text);
+    setOptions([]);
+    setCompleted(true);
+
+    // Signal completion to parent component after a brief delay
+    setTimeout(() => {
+      if (onComplete) {
+        onComplete();
+      }
+    }, 1000);
   };
 
   const handleCloseError = () => {
@@ -111,16 +137,34 @@ const WritingLines: React.FC<WritingLinesProps> = ({ text }) => {
       className={`writing-container ${isDarkMode ? 'dark-mode' : 'light-mode'}`}
     >
       <Box className="header-controls">
-        <Tooltip title="Listen to pronunciation">
-          <IconButton
-            onClick={speakText}
-            className={`speaker-button ${isSpeaking ? 'speaking' : ''}`}
-            aria-label="Listen to pronunciation"
-          >
-            {isSpeaking ? <VolumeUpIcon /> : <VolumeUpIcon />}
-          </IconButton>
-        </Tooltip>
+        {verseNumber && (
+          <Typography className="verse-number">Verse {verseNumber}</Typography>
+        )}
+        <Box className="control-buttons">
+          <Tooltip title="Listen to pronunciation">
+            <IconButton
+              onClick={speakText}
+              className={`speaker-button ${isSpeaking ? 'speaking' : ''}`}
+              aria-label="Listen to pronunciation"
+            >
+              <VolumeUpIcon />
+            </IconButton>
+          </Tooltip>
+
+          {!completed && (
+            <Tooltip title="Skip this verse">
+              <IconButton
+                onClick={handleSkipVerse}
+                className="skip-button"
+                aria-label="Skip this verse"
+              >
+                <SkipNextIcon />
+              </IconButton>
+            </Tooltip>
+          )}
+        </Box>
       </Box>
+
       <Typography
         className="arabic-text"
         variant="h5"
@@ -132,16 +176,22 @@ const WritingLines: React.FC<WritingLinesProps> = ({ text }) => {
       <Box className="writing-lines">
         <div className="line"></div>
         <div className="line"></div>
-        <div className="line"></div>
+        {/* <div className="line"></div> */}
       </Box>
       <CandidateTextDeck
         options={options}
         position={position}
-        sentenceLength={sentence.length}
+        sentenceLength={sentence.text?.length}
         correctLetter={currentCorrectLetter}
         onOptionClick={handleOptionClick}
         isDarkMode={isDarkMode}
       />
+
+      {completed && (
+        <Box className="verse-completion-message">
+          <Typography>Good job! Moving to next verse...</Typography>
+        </Box>
+      )}
       <Snackbar
         open={!!errorMessage}
         autoHideDuration={6000}
