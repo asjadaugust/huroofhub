@@ -40,13 +40,19 @@ const WritingLines: React.FC<WritingLinesProps> = ({
 
   // Reset state when text changes (new verse)
   useEffect(() => {
-    setSentence(ayah);
+    // Create a copy of the ayah with trimmed text
+    const trimmedAyah = {
+      ...ayah,
+      text: ayah.text?.trim() || '',
+    };
+
+    setSentence(trimmedAyah);
     setDisplayedText('');
     setPosition(0);
     setCompleted(false);
 
-    if (ayah.text?.length > 0) {
-      const firstCorrectLetter = ayah.text[0] || '';
+    if (trimmedAyah.text?.length > 0) {
+      const firstCorrectLetter = trimmedAyah.text[0] || '';
       setCurrentCorrectLetter(firstCorrectLetter);
       setOptions(generateOptions(firstCorrectLetter));
     }
@@ -54,15 +60,217 @@ const WritingLines: React.FC<WritingLinesProps> = ({
 
   const generateOptions = (correctLetter: string) => {
     const arabicAlphabet = 'ابتثجحخدذرزسشصضطظعغفقكلمنهوي';
+    const arabicDiacritics = 'ًٌٍَُِّْٰٓٔـ';
     const newOptions = [correctLetter];
-    while (newOptions.length < 4) {
-      const randomLetter =
-        arabicAlphabet[Math.floor(Math.random() * arabicAlphabet.length)];
-      if (!newOptions.includes(randomLetter)) {
-        newOptions.push(randomLetter);
+
+    // Check if the correct letter is a diacritic
+    const isDiacritic = arabicDiacritics.includes(correctLetter);
+
+    if (isDiacritic) {
+      // Get contextually relevant diacritics based on what's already been written
+      const contextDiacritics = getMostLikelyDiacritics(
+        displayedText,
+        correctLetter
+      );
+
+      // Add challenging but contextually relevant diacritic options first
+      for (const diacritic of contextDiacritics) {
+        if (!newOptions.includes(diacritic) && newOptions.length < 4) {
+          newOptions.push(diacritic);
+        }
+      }
+    } else {
+      // Get contextually relevant letters based on what's already been written
+      const contextLetters = getMostLikelyNextLetters(
+        displayedText,
+        correctLetter
+      );
+
+      // Add challenging but contextually relevant options first
+      for (const letter of contextLetters) {
+        if (!newOptions.includes(letter) && newOptions.length < 4) {
+          newOptions.push(letter);
+        }
       }
     }
+
+    // If we still need more options, add random letters or diacritics
+    while (newOptions.length < 4) {
+      const randomChar = isDiacritic
+        ? arabicDiacritics[Math.floor(Math.random() * arabicDiacritics.length)]
+        : arabicAlphabet[Math.floor(Math.random() * arabicAlphabet.length)];
+
+      if (!newOptions.includes(randomChar)) {
+        newOptions.push(randomChar);
+      }
+    }
+
     return newOptions.sort(() => Math.random() - 0.5);
+  };
+
+  // Get contextually relevant diacritics
+  const getMostLikelyDiacritics = (
+    context: string,
+    correctDiacritic: string
+  ): string[] => {
+    // Common diacritic patterns in Arabic
+    const diacriticPatterns: Record<string, string[]> = {
+      // Fatha
+      'َ': ['ُ', 'ِ', 'ّ', 'ْ'],
+      // Damma
+      'ُ': ['َ', 'ِ', 'ّ', 'ْ'],
+      // Kasra
+      'ِ': ['َ', 'ُ', 'ّ', 'ْ'],
+      // Shadda
+      'ّ': ['َ', 'ُ', 'ِ', 'ْ'],
+      // Sukun
+      'ْ': ['َ', 'ُ', 'ِ', 'ّ'],
+      // Tanween Fath
+      'ً': ['ٌ', 'ٍ', 'َ', 'ُ'],
+      // Tanween Damm
+      'ٌ': ['ً', 'ٍ', 'ُ', 'َ'],
+      // Tanween Kasr
+      'ٍ': ['ً', 'ٌ', 'ِ', 'َ'],
+      // Maddah
+      'ٓ': ['ٔ', 'ْ', 'ّ', 'َ'],
+      // Hamza above
+      'ٔ': ['ٓ', 'ْ', 'ّ', 'َ'],
+      // Alef Khanjareeya
+      'ٰ': ['َ', 'ُ', 'ِ', 'ّ'],
+      // Tatweel
+      ـ: ['ّ', 'ْ', 'َ', 'ُ'],
+    };
+
+    // Specific contextual patterns - which diacritics commonly follow certain letters
+    const letterDiacriticPatterns: Record<string, string[]> = {
+      ا: ['َ', 'ُ', 'ِ', 'ْ'],
+      ب: ['َ', 'ُ', 'ِ', 'ّ', 'ْ'],
+      ت: ['َ', 'ُ', 'ِ', 'ّ', 'ْ'],
+      ل: ['َ', 'ُ', 'ِ', 'ّ', 'ْ'],
+      م: ['َ', 'ُ', 'ِ', 'ّ', 'ْ'],
+      ن: ['َ', 'ُ', 'ِ', 'ّ', 'ْ'],
+      و: ['َ', 'ُ', 'ْ', 'ٌ'],
+      ي: ['َ', 'ُ', 'ِ', 'ّ', 'ْ'],
+    };
+
+    let likelyDiacritics: string[] = [];
+
+    // If we have context, use the last letter to predict likely diacritics
+    if (context.length > 0) {
+      const lastChar = context[context.length - 1];
+
+      // If we have specific patterns for this letter
+      if (letterDiacriticPatterns[lastChar]) {
+        likelyDiacritics = letterDiacriticPatterns[lastChar].filter(
+          (d) => d !== correctDiacritic
+        );
+      }
+      // Else use general diacritic patterns
+      else if (diacriticPatterns[correctDiacritic]) {
+        likelyDiacritics = diacriticPatterns[correctDiacritic];
+      }
+    } else if (diacriticPatterns[correctDiacritic]) {
+      // If no context, just use the common pattern for this diacritic
+      likelyDiacritics = diacriticPatterns[correctDiacritic];
+    }
+
+    // Ensure we don't include the correct diacritic
+    return likelyDiacritics.filter((d) => d !== correctDiacritic);
+  };
+
+  // Simple implementation of n-gram based letter prediction
+  const getMostLikelyNextLetters = (
+    context: string,
+    correctLetter: string
+  ): string[] => {
+    // Common letter pairs in Arabic - simplified n-gram model
+    // These pairs represent letters that commonly follow each other
+    const commonPairs: Record<string, string[]> = {
+      ا: ['ل', 'ن', 'م', 'ر'],
+      ب: ['ا', 'ي', 'ر', 'ن'],
+      ت: ['ا', 'ي', 'و', 'ر'],
+      ث: ['م', 'ر', 'ن', 'ل'],
+      ج: ['ا', 'ر', 'د', 'ع'],
+      ح: ['م', 'ي', 'د', 'ت'],
+      خ: ['ر', 'ي', 'ل', 'ت'],
+      د: ['ا', 'ي', 'و', 'ر'],
+      ذ: ['ا', 'ل', 'ي', 'ر'],
+      ر: ['ا', 'ب', 'س', 'ي'],
+      ز: ['ي', 'ل', 'م', 'ن'],
+      س: ['ا', 'ل', 'م', 'ت'],
+      ش: ['ي', 'ر', 'ا', 'ت'],
+      ص: ['ا', 'ل', 'ر', 'د'],
+      ض: ['ر', 'ي', 'ل', 'ا'],
+      ط: ['ا', 'ي', 'ل', 'ر'],
+      ظ: ['ي', 'ل', 'م', 'ا'],
+      ع: ['ل', 'ن', 'م', 'ي'],
+      غ: ['ي', 'ر', 'ف', 'ا'],
+      ف: ['ي', 'ا', 'ر', 'ع'],
+      ق: ['ا', 'ل', 'و', 'د'],
+      ك: ['ا', 'م', 'ر', 'ت'],
+      ل: ['ا', 'م', 'ل', 'ي'],
+      م: ['ا', 'ن', 'ي', 'و'],
+      ن: ['ا', 'و', 'ي', 'ه'],
+      ه: ['ا', 'م', 'و', 'ي'],
+      و: ['ا', 'ل', 'ن', 'م'],
+      ي: ['ن', 'ر', 'د', 'ة'],
+    };
+
+    let likelyLetters: string[] = [];
+
+    // If we have context, use the last letter to predict likely next letters
+    if (context.length > 0) {
+      const lastChar = context[context.length - 1];
+      if (commonPairs[lastChar]) {
+        // Filter out the correct letter to ensure we only offer challenging alternatives
+        likelyLetters = commonPairs[lastChar].filter(
+          (l) => l !== correctLetter
+        );
+      }
+    }
+
+    // If we haven't found likely letters or context is empty,
+    // use letters that are visually similar to the correct letter
+    if (likelyLetters.length < 3) {
+      // Map of visually similar Arabic letters
+      const similarLetters: Record<string, string[]> = {
+        ب: ['ت', 'ث', 'ن', 'ي'],
+        ت: ['ب', 'ث', 'ن', 'ي'],
+        ث: ['ب', 'ت', 'ن', 'ي'],
+        ج: ['ح', 'خ'],
+        ح: ['ج', 'خ'],
+        خ: ['ج', 'ح'],
+        د: ['ذ'],
+        ذ: ['د'],
+        ر: ['ز', 'و'],
+        ز: ['ر'],
+        س: ['ش', 'ص'],
+        ش: ['س'],
+        ص: ['ض', 'س'],
+        ض: ['ص'],
+        ط: ['ظ'],
+        ظ: ['ط'],
+        ع: ['غ'],
+        غ: ['ع'],
+        ف: ['ق'],
+        ق: ['ف'],
+        ك: ['ل'],
+        م: ['ه'],
+        ن: ['ب', 'ت', 'ث', 'ي'],
+        ه: ['م'],
+        و: ['ر'],
+        ي: ['ب', 'ت', 'ث', 'ن'],
+      };
+
+      if (similarLetters[correctLetter]) {
+        const visuallySimilar = similarLetters[correctLetter].filter(
+          (l) => !likelyLetters.includes(l)
+        );
+        likelyLetters = [...likelyLetters, ...visuallySimilar];
+      }
+    }
+
+    return likelyLetters;
   };
 
   const handleOptionClick = (selectedLetter: string) => {
@@ -96,18 +304,18 @@ const WritingLines: React.FC<WritingLinesProps> = ({
       setIsSpeaking(false);
       return;
     }
-    
+
     setIsSpeaking(true);
     const audio = new Audio(sentence.audio);
-    
+
     // Add event listeners to handle when audio finishes or errors
     audio.addEventListener('ended', () => setIsSpeaking(false));
     audio.addEventListener('error', () => {
       setIsSpeaking(false);
       setErrorMessage('Error playing audio');
     });
-    
-    audio.play().catch(error => {
+
+    audio.play().catch((error) => {
       setIsSpeaking(false);
       setErrorMessage('Failed to play audio');
       console.error('Audio playback failed:', error);

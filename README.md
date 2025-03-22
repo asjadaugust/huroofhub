@@ -5,6 +5,7 @@ HuroofHub is an interactive web application designed to help users practice Arab
 ![HuroofHub Screenshot](public/screenshot.png)
 
 ## Table of Contents
+
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Running the Application](#running-the-application)
@@ -21,38 +22,48 @@ Before you begin, you need to install a few tools:
 Node.js is a JavaScript runtime that allows you to run JavaScript on your computer. npm (Node Package Manager) comes with Node.js and helps manage JavaScript packages.
 
 **For Windows:**
+
 1. Go to [Node.js website](https://nodejs.org/)
 2. Download the LTS (Long Term Support) version
 3. Run the installer and follow the instructions
-4. To verify installation, open Command Prompt and type: 
-   ```
+4. To verify installation, open Command Prompt and type:
+
+   ```bash
    node -v
    npm -v
    ```
 
 **For macOS:**
+
 1. Go to [Node.js website](https://nodejs.org/)
 2. Download the LTS version
 3. Run the installer and follow the instructions
 4. Alternatively, if you have Homebrew installed, you can run:
-   ```
+
+   ```bash
    brew install node
    ```
+
 5. To verify installation, open Terminal and type:
-   ```
+
+   ```bash
    node -v
    npm -v
    ```
 
 **For Linux (Ubuntu/Debian):**
+
 1. Open Terminal
 2. Run the following commands:
-   ```
+
+   ```bash
    sudo apt update
    sudo apt install nodejs npm
    ```
+
 3. Verify installation:
-   ```
+
+   ```bash
    node -v
    npm -v
    ```
@@ -62,19 +73,24 @@ Node.js is a JavaScript runtime that allows you to run JavaScript on your comput
 Git is a version control system that helps manage code changes.
 
 **For Windows:**
+
 1. Go to [Git website](https://git-scm.com/)
 2. Download and install Git
 3. Use default settings during installation
 
 **For macOS:**
+
 1. If you have Homebrew:
-   ```
+
+   ```bash
    brew install git
    ```
+
 2. Otherwise, download from [Git website](https://git-scm.com/)
 
 **For Linux:**
-```
+
+```bash
 sudo apt install git
 ```
 
@@ -82,22 +98,23 @@ sudo apt install git
 
 ### Step 1: Get the Code
 
-**Option 1: Using Git (Recommended)**
+#### Option 1: Using Git (Recommended)
 
 Open Terminal (macOS/Linux) or Command Prompt/PowerShell (Windows) and run:
 
-```
+```bash
 git clone https://github.com/asjadaugust/huroofhub.git
 cd huroofhub
 ```
 
-**Option 2: Download ZIP file**
+#### Option 2: Download ZIP file
 
 1. Download the project as a ZIP file
 2. Extract the ZIP file
 3. Open Terminal/Command Prompt
 4. Navigate to the extracted folder:
-   ```
+
+   ```bash
    cd path/to/extracted/huroofhub
    ```
 
@@ -105,7 +122,7 @@ cd huroofhub
 
 Run the following command in Terminal/Command Prompt from the project directory:
 
-```
+```bash
 npm install
 ```
 
@@ -117,13 +134,13 @@ This will install all the necessary packages for the application. It might take 
 
 Run the following command in Terminal/Command Prompt from the project directory:
 
-```
+```bash
 npm run dev
 ```
 
 After running this command, you should see output indicating that the server is running. It will typically show something like:
 
-```
+```bash
 ready - started server on 0.0.0.0:3000
 ```
 
@@ -131,7 +148,7 @@ ready - started server on 0.0.0.0:3000
 
 Open your web browser and navigate to:
 
-```
+```bash
 http://localhost:3000
 ```
 
@@ -156,22 +173,26 @@ You can switch between light and dark mode using the theme toggle button in the 
 
 ### Common Issues and Solutions
 
-**Issue: "npm not recognized" error**
+#### "npm not recognized" error
+
 - Make sure Node.js and npm are properly installed
 - Try restarting your computer
 - Check if the PATH environment variable includes the npm directory
 
-**Issue: Application doesn't start**
+#### Application doesn't start
+
 - Make sure you're in the correct directory
 - Try running `npm install` again to ensure all dependencies are installed
 - Check if the port 3000 is already in use by another application
 
-**Issue: Browser shows "Cannot connect to server"**
+#### Browser shows "Cannot connect to server"
+
 - Make sure the development server is running
 - Check your firewall settings
 - Try using a different browser
 
-**Issue: Audio doesn't play**
+#### Audio doesn't play
+
 - Make sure your browser supports the Web Speech API
 - Check if your browser has permission to use audio
 - Try using a different browser (Chrome works best for speech synthesis)
@@ -189,10 +210,12 @@ A: In the Terminal/Command Prompt where the application is running, press `Ctrl+
 
 **Q: How can I update the application if there are new features?**
 A: If you used Git, navigate to the project directory and run:
-```
+
+```bash
 git pull
 npm install
 ```
+
 If you downloaded the ZIP, you'll need to download and extract the new version.
 
 ---
